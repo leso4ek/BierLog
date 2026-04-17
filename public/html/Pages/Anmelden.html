@@ -12,6 +12,8 @@
 </head>
 <body>
 
+
+<!-- ───────────────────────── AUTH VIEW ───────────────────────── -->
 <div id="view-auth" class="view">
   <div class="login-wrap">
     <div class="login-box">
@@ -22,11 +24,11 @@
       </div>
       <div class="card login-card">
         <div class="tabs">
-          <button class="tab active" id="tab-login"  onclick="switchTab('login')">Anmelden</button>
-          <button class="tab"        id="tab-signin" onclick="switchTab('signin')">Registrieren</button>
+          <button class="tab active" id="tab-login"  onclick="AuthView.switchTab('login')">Anmelden</button>
+          <button class="tab"        id="tab-signin" onclick="AuthView.switchTab('signin')">Registrieren</button>
         </div>
         <div class="login-form">
-          <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+          <form id="auth-form" onsubmit="AuthView.handleSubmit(event)">
             <div class="form-group" id="field-name" style="display: none;">
               <label>Dein Name *</label>
               <input type="text" id="input-name" class="input-field" placeholder="z.B. Hopfen-Hans" />
@@ -46,7 +48,7 @@
                   style="padding-right: 3rem; -webkit-text-security: disc; font-family: 'DM Sans', sans-serif;"
                   autocomplete="off"
                 />
-                <button type="button" class="input-toggle" onclick="togglePass('input-password', this)">👁</button>
+                <button type="button" class="input-toggle" onclick="AuthView.togglePass('input-password', this)">👁</button>
               </div>
             </div>
             <div class="form-group" id="field-confirm" style="display: none;">
@@ -60,7 +62,7 @@
                   style="padding-right: 3rem; -webkit-text-security: disc; font-family: 'DM Sans', sans-serif;"
                   autocomplete="off"
                 />
-                <button type="button" class="input-toggle" onclick="togglePass('input-confirm', this)">👁</button>
+                <button type="button" class="input-toggle" onclick="AuthView.togglePass('input-confirm', this)">👁</button>
               </div>
             </div>
             <div id="auth-error" class="alert-error" style="display: none; margin-bottom: 1rem;"></div>
@@ -70,7 +72,7 @@
           </form>
           <p class="login-footer">
             <span id="footer-text">Noch kein Account?</span>
-            <button id="footer-link" onclick="switchTab('signin')">Jetzt registrieren</button>
+            <button id="footer-link" onclick="AuthView.switchTab('signin')">Jetzt registrieren</button>
           </p>
         </div>
       </div>
@@ -79,17 +81,18 @@
 </div>
 
 
+<!-- ─────────────────────── DASHBOARD VIEW ────────────────────── -->
 <div id="view-dashboard" class="view">
   <nav class="navbar">
     <div class="container navbar-inner">
-      <a href="#dashboard" class="navbar-logo" onclick="showView('dashboard')">🍺 Bier<span>Log</span></a>
+      <a href="#dashboard" class="navbar-logo" onclick="Router.go('dashboard')">🍺 Bier<span>Log</span></a>
       <div class="navbar-links">
-        <a href="#dashboard" class="navbar-link active" onclick="showView('dashboard')">Dashboard</a>
-        <a href="#add"       class="navbar-link"        onclick="showView('add')">+ Bier hinzufügen</a>
+        <a href="#dashboard" class="navbar-link active" onclick="Router.go('dashboard')">Dashboard</a>
+        <a href="#add"       class="navbar-link"        onclick="Router.go('add')">+ Bier hinzufügen</a>
       </div>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span class="navbar-user" id="nav-user-dash"></span>
-        <button class="navbar-logout" onclick="handleLogout()">Abmelden</button>
+        <button class="navbar-logout" onclick="DashboardView.logout()">Abmelden</button>
       </div>
     </div>
   </nav>
@@ -102,13 +105,13 @@
           id="search-input"
           class="input-field"
           placeholder="Suchen nach Name, Stil, Herkunft..."
-          oninput="renderBeers()"
+          oninput="DashboardView.filterAndRender()"
         />
         <select
           id="sort-select"
           class="input-field"
           style="max-width: 200px; background: rgba(69,26,3,0.7);"
-          onchange="renderBeers()"
+          onchange="DashboardView.filterAndRender()"
         >
           <option value="date_desc">Neueste zuerst</option>
           <option value="date_asc">Älteste zuerst</option>
@@ -118,10 +121,10 @@
           <option value="name">Name A-Z</option>
         </select>
         <div class="view-toggle">
-          <button id="btn-cards" class="btn-primary" onclick="setCardView('cards')" style="padding: 0.6rem 1rem;">Karten</button>
-          <button id="btn-list"  class="btn-ghost"   onclick="setCardView('list')"  style="padding: 0.6rem 1rem;">Liste</button>
+          <button id="btn-cards" class="btn-primary" onclick="DashboardView.setCardView('cards')" style="padding: 0.6rem 1rem;">Karten</button>
+          <button id="btn-list"  class="btn-ghost"   onclick="DashboardView.setCardView('list')"  style="padding: 0.6rem 1rem;">Liste</button>
         </div>
-        <button class="btn-primary" onclick="showView('add')" style="white-space: nowrap;">+ Neues Bier</button>
+        <button class="btn-primary" onclick="Router.go('add')" style="white-space: nowrap;">+ Neues Bier</button>
       </div>
       <div id="beer-container"></div>
       <div id="loading-beers" style="text-align: center; padding: 3rem; display: none;">
@@ -134,24 +137,25 @@
 </div>
 
 
+<!-- ──────────────────────── ADD BIER VIEW ────────────────────── -->
 <div id="view-add" class="view">
   <nav class="navbar">
     <div class="container navbar-inner">
-      <a href="#dashboard" class="navbar-logo" onclick="showView('dashboard')">🍺 Bier<span>Log</span></a>
+      <a href="#dashboard" class="navbar-logo" onclick="Router.go('dashboard')">🍺 Bier<span>Log</span></a>
       <div class="navbar-links">
-        <a href="#dashboard" class="navbar-link"        onclick="showView('dashboard')">Dashboard</a>
+        <a href="#dashboard" class="navbar-link"        onclick="Router.go('dashboard')">Dashboard</a>
         <a href="#add"       class="navbar-link active">+ Bier hinzufügen</a>
       </div>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span class="navbar-user" id="nav-user-add"></span>
-        <button class="navbar-logout" onclick="handleLogout()">Abmelden</button>
+        <button class="navbar-logout" onclick="DashboardView.logout()">Abmelden</button>
       </div>
     </div>
   </nav>
   <main class="page">
     <div class="container" style="max-width: 640px;">
       <div class="page-header">
-        <a href="#dashboard" class="back-link" onclick="showView('dashboard')">← Zurück zum Dashboard</a>
+        <a href="#dashboard" class="back-link" onclick="Router.go('dashboard')">← Zurück zum Dashboard</a>
         <h1>Neues Bier eintragen</h1>
         <p>Gleicher Name? Zähler wird automatisch erhöht.</p>
       </div>
@@ -161,7 +165,7 @@
         <small>Weiterleitung zum Dashboard...</small>
       </div>
       <div class="card" style="padding: 2rem;">
-        <form id="add-form" onsubmit="handleAddSubmit(event)">
+        <form id="add-form" onsubmit="AddBierView.handleSubmit(event)">
           <div class="form-group">
             <label>Bierbezeichnung *</label>
             <input type="text" id="add-name" class="input-field" placeholder="z.B. Augustiner Helles" />
@@ -173,14 +177,14 @@
                 id="add-style"
                 class="input-field"
                 style="background: rgba(69,26,3,0.7);"
-                onchange="handleStyleChange('add-style', 'add-new-style-row', 'add-new-style-input')"
+                onchange="AddBierView.handleStyleChange()"
               ></select>
               <div id="add-new-style-row" class="new-style-row" style="display: none;">
                 <input type="text" id="add-new-style-input" class="input-field" placeholder="z.B. Rauchbier" />
                 <button type="button" class="btn-primary" style="padding: 0.5rem 0.9rem; white-space: nowrap;"
-                        onclick="saveNewStyle('add-style', 'add-new-style-row', 'add-new-style-input')">Speichern</button>
+                        onclick="AddBierView.saveNewStyle()">Speichern</button>
                 <button type="button" class="btn-ghost" style="padding: 0.5rem 0.75rem;"
-                        onclick="cancelNewStyle('add-style', 'add-new-style-row')">✕</button>
+                        onclick="AddBierView.cancelNewStyle()">✕</button>
               </div>
             </div>
             <div class="form-group">
@@ -208,7 +212,7 @@
           <div id="add-error" class="alert-error" style="display: none; margin-bottom: 1rem;"></div>
           <div class="form-actions">
             <button type="submit" id="add-submit-btn" class="btn-primary">🍺 Speichern</button>
-            <button type="button" class="btn-ghost" onclick="showView('dashboard')">Abbrechen</button>
+            <button type="button" class="btn-ghost" onclick="Router.go('dashboard')">Abbrechen</button>
           </div>
         </form>
       </div>
@@ -217,14 +221,15 @@
 </div>
 
 
+<!-- ──────────────────────── EDIT MODAL ───────────────────────── -->
 <div class="modal-backdrop" id="edit-modal">
   <div class="modal">
     <div class="modal-header">
       <h2>✎ Bier bearbeiten</h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="DashboardView.closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <form id="edit-form" onsubmit="handleEditSubmit(event)">
+      <form id="edit-form" onsubmit="DashboardView.handleEditSubmit(event)">
         <input type="hidden" id="edit-id" />
         <div class="form-group">
           <label>Name *</label>
@@ -237,14 +242,14 @@
               id="edit-style"
               class="input-field"
               style="background: rgba(69,26,3,0.7);"
-              onchange="handleStyleChange('edit-style', 'edit-new-style-row', 'edit-new-style-input')"
+              onchange="DashboardView.handleStyleChange('edit-style','edit-new-style-row','edit-new-style-input')"
             ></select>
             <div id="edit-new-style-row" class="new-style-row" style="display: none;">
               <input type="text" id="edit-new-style-input" class="input-field" placeholder="z.B. Rauchbier" />
               <button type="button" class="btn-primary" style="padding: 0.5rem 0.9rem; white-space: nowrap;"
-                      onclick="saveNewStyle('edit-style', 'edit-new-style-row', 'edit-new-style-input')">Speichern</button>
+                      onclick="DashboardView.saveNewStyle('edit-style','edit-new-style-row','edit-new-style-input')">Speichern</button>
               <button type="button" class="btn-ghost" style="padding: 0.5rem 0.75rem;"
-                      onclick="cancelNewStyle('edit-style', 'edit-new-style-row')">✕</button>
+                      onclick="DashboardView.cancelNewStyle('edit-style','edit-new-style-row')">✕</button>
             </div>
           </div>
           <div class="form-group">
@@ -271,7 +276,7 @@
         <div id="edit-error" class="alert-error" style="display: none; margin-bottom: 1rem;"></div>
         <div class="form-actions">
           <button type="submit" id="edit-submit-btn" class="btn-primary">✓ Änderungen speichern</button>
-          <button type="button" class="btn-ghost" onclick="closeModal()">Abbrechen</button>
+          <button type="button" class="btn-ghost" onclick="DashboardView.closeModal()">Abbrechen</button>
         </div>
       </form>
     </div>
@@ -279,654 +284,12 @@
 </div>
 
 
+<!-- ──────────────────────── SCRIPTS ──────────────────────────── -->
 <script src="/static/js/api.js"></script>
-<script>
+<script src="/static/js/components/auth.js"></script>
+<script src="/static/js/components/dashboard.js"></script>
+<script src="/static/js/components/addbier.js"></script>
+<script src="/static/js/router.js"></script>
 
-var VIEWS = ['auth', 'dashboard', 'add'];
-var cardMode = 'cards';
-var addRating = 3;
-var editRatVal = 3;
-var addSubmitting = false;
-
-
-function showView(name) {
-  if ((name === 'dashboard' || name === 'add') && !Auth.isLoggedIn()) {
-    name = 'auth';
-  }
-  if (name === 'auth' && Auth.isLoggedIn()) {
-    name = 'dashboard';
-  }
-  for (var i = 0; i < VIEWS.length; i++) {
-    var viewElement = document.getElementById('view-' + VIEWS[i]);
-    if (viewElement) {
-      viewElement.classList.remove('active');
-    }
-  }
-  var targetView = document.getElementById('view-' + name);
-  if (targetView) {
-    targetView.classList.add('active');
-  }
-  history.pushState(null, '', '#' + name);
-  if (name === 'auth') {
-    document.title = 'BierLog – Anmelden';
-  } else if (name === 'dashboard') {
-    document.title = 'BierLog – Dashboard';
-  } else if (name === 'add') {
-    document.title = 'BierLog – Bier hinzufügen';
-  } else {
-    document.title = 'BierLog';
-  }
-  if (name === 'dashboard') {
-    initDashboard();
-  }
-  if (name === 'add') {
-    initAdd();
-  }
-}
-
-window.addEventListener('popstate', function() {
-  var hash = window.location.hash.replace('#', '');
-  showView(hash);
-});
-
-window.addEventListener('DOMContentLoaded', function() {
-  var hash = window.location.hash.replace('#', '');
-  var isKnownView = VIEWS.includes(hash);
-  if (isKnownView) {
-    showView(hash);
-  } else if (Auth.isLoggedIn()) {
-    showView('dashboard');
-  } else {
-    showView('auth');
-  }
-});
-
-
-var currentTab = 'login';
-
-
-function switchTab(tab) {
-  currentTab = tab;
-  var isSignin = (tab === 'signin');
-  document.getElementById('tab-login').classList.toggle('active', !isSignin);
-  document.getElementById('tab-signin').classList.toggle('active', isSignin);
-  if (isSignin) {
-    document.getElementById('field-name').style.display = 'block';
-    document.getElementById('field-confirm').style.display = 'block';
-    document.getElementById('label-password').textContent = 'Passwort * (mind. 6 Zeichen)';
-    document.getElementById('auth-submit-btn').textContent = 'Registrieren →';
-    document.getElementById('footer-text').textContent = 'Bereits registriert?';
-    document.getElementById('footer-link').textContent = 'Zum Login';
-    document.getElementById('footer-link').onclick = function() { switchTab('login'); };
-  } else {
-    document.getElementById('field-name').style.display = 'none';
-    document.getElementById('field-confirm').style.display = 'none';
-    document.getElementById('label-password').textContent = 'Passwort *';
-    document.getElementById('auth-submit-btn').textContent = 'Anmelden →';
-    document.getElementById('footer-text').textContent = 'Noch kein Account?';
-    document.getElementById('footer-link').textContent = 'Jetzt registrieren';
-    document.getElementById('footer-link').onclick = function() { switchTab('signin'); };
-  }
-  document.getElementById('auth-error').style.display = 'none';
-  document.getElementById('auth-form').reset();
-}
-
-
-function togglePass(inputId, button) {
-  var inputElement = document.getElementById(inputId);
-  var isHidden = (inputElement.style.webkitTextSecurity === 'disc');
-  if (isHidden) {
-    inputElement.style.webkitTextSecurity = 'none';
-    button.textContent = '🙈';
-  } else {
-    inputElement.style.webkitTextSecurity = 'disc';
-    button.textContent = '👁';
-  }
-}
-
-
-async function handleAuthSubmit(event) {
-  event.preventDefault();
-  var errorElement = document.getElementById('auth-error');
-  errorElement.style.display = 'none';
-  var username = document.getElementById('input-username').value.trim();
-  var password = document.getElementById('input-password').value;
-  var name     = document.getElementById('input-name').value.trim();
-  var confirm  = document.getElementById('input-confirm').value;
-  var button   = document.getElementById('auth-submit-btn');
-  if (!username) {
-    showErr(errorElement, 'Benutzername ist erforderlich.');
-    return;
-  }
-  if (!password) {
-    showErr(errorElement, 'Passwort ist erforderlich.');
-    return;
-  }
-  if (currentTab === 'signin') {
-    if (!name) {
-      showErr(errorElement, 'Bitte gib deinen Namen ein.');
-      return;
-    }
-    if (username.length < 3) {
-      showErr(errorElement, 'Benutzername muss mindestens 3 Zeichen haben.');
-      return;
-    }
-    if (password.length < 6) {
-      showErr(errorElement, 'Passwort muss mindestens 6 Zeichen haben.');
-      return;
-    }
-    if (password !== confirm) {
-      showErr(errorElement, 'Passwörter stimmen nicht überein.');
-      return;
-    }
-  }
-  button.disabled = true;
-  button.textContent = 'Bitte warten...';
-  try {
-    if (currentTab === 'login') {
-      await Auth.login(username, password);
-    } else {
-      await Auth.signin(username, password, name);
-    }
-    showView('dashboard');
-  } catch (error) {
-    showErr(errorElement, error.message || 'Fehler beim Anmelden.');
-  } finally {
-    button.disabled = false;
-    if (currentTab === 'login') {
-      button.textContent = 'Anmelden →';
-    } else {
-      button.textContent = 'Registrieren →';
-    }
-  }
-}
-
-
-async function initDashboard() {
-  var user = Auth.current();
-  if (user) {
-    document.getElementById('nav-user-dash').textContent = user.name || user.username || '';
-  }
-  document.getElementById('search-input').value = '';
-  await loadDashboard();
-}
-
-
-async function loadDashboard() {
-  document.getElementById('loading-beers').style.display = 'block';
-  document.getElementById('beer-container').innerHTML = '';
-  try {
-    var results = await Promise.all([Beers.getAll(), Beers.stats()]);
-    var beerList = results[0];
-    var stats    = results[1];
-    renderStats(stats);
-    renderBeerList(beerList);
-  } catch (error) {
-    document.getElementById('beer-container').innerHTML =
-      '<div class="card empty-state"><div class="icon">⚠</div><h3>Fehler beim Laden</h3><p>' + error.message + '</p></div>';
-  } finally {
-    document.getElementById('loading-beers').style.display = 'none';
-  }
-}
-
-
-function handleLogout() {
-  Auth.logout();
-  window.location.href = window.location.pathname + '#auth';
-  window.location.reload();
-}
-
-
-function renderStats(stats) {
-  var statItems = [
-    { icon: '🍺', value: stats.total,                                     label: 'Probiert',      small: false },
-    { icon: '⭐', value: stats.avgRating ? (stats.avgRating + ' ★') : '-', label: 'Ø Rating',     small: false },
-    { icon: '🏆', value: stats.topStyle || '-',                            label: 'Lieblingsstil', small: false },
-    { icon: '🕐', value: stats.latestBeer ? stats.latestBeer.name : '-',   label: 'Zuletzt',       small: true  }
-  ];
-  var html = '';
-  for (var i = 0; i < statItems.length; i++) {
-    var item = statItems[i];
-    var smallClass = item.small ? ' sm' : '';
-    html += '<div class="card stat-card fade-up stagger-' + (i + 1) + '">';
-    html += '<div class="stat-icon">' + item.icon + '</div>';
-    html += '<div class="stat-value' + smallClass + '">' + item.value + '</div>';
-    html += '<div class="stat-label">' + item.label + '</div>';
-    html += '</div>';
-  }
-  document.getElementById('stats-grid').innerHTML = html;
-}
-
-
-async function renderBeers() {
-  try {
-    var beers = await Beers.getAll();
-    renderBeerList(beers);
-  } catch (error) {}
-}
-
-
-function renderBeerList(beers) {
-  var searchValue = document.getElementById('search-input');
-  var query = searchValue ? searchValue.value.toLowerCase() : '';
-  var sortSelect = document.getElementById('sort-select');
-  var sort = sortSelect ? sortSelect.value : 'date_desc';
-  var filteredBeers = [];
-  for (var i = 0; i < beers.length; i++) {
-    var beer = beers[i];
-    var matchesSearch =
-      beer.name.toLowerCase().includes(query) ||
-      beer.origin.toLowerCase().includes(query) ||
-      beer.style.toLowerCase().includes(query);
-    if (matchesSearch) {
-      filteredBeers.push(beer);
-    }
-  }
-  filteredBeers.sort(function(a, b) {
-    if (sort === 'date_desc')   return new Date(b.date) - new Date(a.date);
-    if (sort === 'date_asc')    return new Date(a.date) - new Date(b.date);
-    if (sort === 'rating_desc') return b.rating - a.rating;
-    if (sort === 'rating_asc')  return a.rating - b.rating;
-    if (sort === 'style')       return a.style.localeCompare(b.style);
-    if (sort === 'name')        return a.name.localeCompare(b.name);
-    return 0;
-  });
-  var container = document.getElementById('beer-container');
-  var countElement = document.getElementById('beer-count');
-  if (filteredBeers.length === 0) {
-    var emptyMessage = query ? 'Keine Ergebnisse.' : 'Füge dein erstes Bier hinzu!';
-    var addButton = !query ? '<button class="btn-primary" onclick="showView(\'add\')">Erstes Bier eintragen</button>' : '';
-    container.innerHTML = '<div class="card empty-state"><div class="icon">🍻</div><h3>Noch kein Bier hier</h3><p>' + emptyMessage + '</p>' + addButton + '</div>';
-    countElement.textContent = '';
-    return;
-  }
-  if (cardMode === 'cards') {
-    container.innerHTML = renderCards(filteredBeers);
-  } else {
-    container.innerHTML = renderTable(filteredBeers);
-  }
-  if (filteredBeers.length === 1) {
-    countElement.textContent = '1 Bier angezeigt';
-  } else {
-    countElement.textContent = filteredBeers.length + ' Biere angezeigt';
-  }
-}
-
-
-function setCardView(mode) {
-  cardMode = mode;
-  if (mode === 'cards') {
-    document.getElementById('btn-cards').className = 'btn-primary';
-    document.getElementById('btn-list').className  = 'btn-ghost';
-  } else {
-    document.getElementById('btn-cards').className = 'btn-ghost';
-    document.getElementById('btn-list').className  = 'btn-primary';
-  }
-  document.getElementById('btn-cards').style.padding = '0.6rem 1rem';
-  document.getElementById('btn-list').style.padding  = '0.6rem 1rem';
-  renderBeers();
-}
-
-
-function renderCards(beers) {
-  var html = '<div class="beer-grid">';
-  for (var i = 0; i < beers.length; i++) {
-    var beer = beers[i];
-    var counterBadge = '';
-    if (beer.counter > 1) {
-      counterBadge = '<span class="counter-badge">×' + beer.counter + '</span>';
-    }
-    var notesHtml = '';
-    if (beer.notes) {
-      notesHtml = '<div class="beer-card-notes">"' + beer.notes + '"</div>';
-    }
-    html += '<div class="card beer-card">';
-    html += '  <div class="beer-card-header">';
-    html += '    <span class="badge ' + getBadge(beer.style) + '">' + beer.style + '</span>';
-    html += '    <div class="beer-card-meta">';
-    html += '      ' + counterBadge;
-    html += '      <span class="beer-card-date">' + fmtDate(beer.date) + '</span>';
-    html += '    </div>';
-    html += '  </div>';
-    html += '  <div class="beer-card-name">' + beer.name + '</div>';
-    html += '  <div class="beer-card-origin">📍 ' + beer.origin + '</div>';
-    html += '  ' + starsRO(beer.rating, 'sm');
-    html += '  ' + notesHtml;
-    html += '  <div class="beer-card-actions">';
-    html += '    <button class="btn-edit"   onclick="openEdit(\'' + beer.id + '\')">✎ Bearbeiten</button>';
-    html += '    <button class="btn-danger" onclick="handleDelete(\'' + beer.id + '\',\'' + esc(beer.name) + '\')">✕ Entfernen</button>';
-    html += '  </div>';
-    html += '</div>';
-  }
-  html += '</div>';
-  return html;
-}
-
-
-function renderTable(beers) {
-  var html = '<div class="card" style="overflow: hidden;">';
-  html += '<table class="beer-table">';
-  html += '<thead><tr>';
-  html += '<th>Name</th><th>Stil</th><th>Herkunft</th>';
-  html += '<th>Rating</th><th>Anzahl</th><th>Datum</th><th></th>';
-  html += '</tr></thead>';
-  html += '<tbody>';
-  for (var i = 0; i < beers.length; i++) {
-    var beer = beers[i];
-    var counterCell = '';
-    if (beer.counter > 1) {
-      counterCell = '<span class="counter-badge">×' + beer.counter + '</span>';
-    } else {
-      counterCell = '<span style="color: #6b3a00;">1</span>';
-    }
-    html += '<tr>';
-    html += '<td style="font-weight: 600; color: #fef9ec;">' + beer.name + '</td>';
-    html += '<td><span class="badge ' + getBadge(beer.style) + '">' + beer.style + '</span></td>';
-    html += '<td style="color: rgba(251,191,36,0.7);">' + beer.origin + '</td>';
-    html += '<td>' + starsRO(beer.rating, 'sm') + '</td>';
-    html += '<td style="text-align: center;">' + counterCell + '</td>';
-    html += '<td style="color: #92400e; font-size: 0.8rem;">' + fmtDate(beer.date) + '</td>';
-    html += '<td><div style="display: flex; gap: 0.75rem;">';
-    html += '<button class="btn-edit"   onclick="openEdit(\'' + beer.id + '\')">✎</button>';
-    html += '<button class="btn-danger" onclick="handleDelete(\'' + beer.id + '\',\'' + esc(beer.name) + '\')">✕</button>';
-    html += '</div></td>';
-    html += '</tr>';
-  }
-  html += '</tbody></table></div>';
-  return html;
-}
-
-
-async function handleDelete(id, name) {
-  var confirmed = confirm('"' + name + '" wirklich löschen?');
-  if (!confirmed) return;
-  try {
-    await Beers.delete(id);
-    await loadDashboard();
-  } catch (error) {
-    alert('Fehler: ' + error.message);
-  }
-}
-
-
-async function initAdd() {
-  addSubmitting = false;
-  var user = Auth.current();
-  if (user) {
-    document.getElementById('nav-user-add').textContent = user.name || user.username || '';
-  }
-  document.getElementById('add-form').style.display = 'block';
-  document.getElementById('counter-banner').style.display = 'none';
-  document.getElementById('add-error').style.display = 'none';
-  document.getElementById('add-form').reset();
-  document.getElementById('add-date').value = new Date().toISOString().split('T')[0];
-  addRating = 3;
-  document.getElementById('add-rating').value = 3;
-  document.getElementById('add-submit-btn').disabled = false;
-  document.getElementById('add-submit-btn').textContent = '🍺 Speichern';
-  renderAddStars(3);
-  await loadStylesInto('add-style');
-  setTimeout(function() {
-    document.getElementById('add-name').focus();
-  }, 100);
-}
-
-
-function renderAddStars(rating) {
-  var html = '';
-  for (var i = 1; i <= 5; i++) {
-    var filledClass = (i <= rating) ? 'filled' : '';
-    html += '<button type="button" class="star ' + filledClass + '"';
-    html += ' onclick="setAddRating(' + i + ')"';
-    html += ' onmouseover="hoverStars(\'add-stars\', ' + i + ', \'add-rating-label\')"';
-    html += ' onmouseout="renderAddStars(addRating)">★</button>';
-  }
-  document.getElementById('add-stars').innerHTML = html;
-  document.getElementById('add-rating-label').textContent = rating + '/5';
-}
-
-
-function setAddRating(rating) {
-  addRating = rating;
-  document.getElementById('add-rating').value = rating;
-  renderAddStars(rating);
-}
-
-
-async function handleAddSubmit(event) {
-  event.preventDefault();
-  if (addSubmitting) return;
-  var errorElement = document.getElementById('add-error');
-  errorElement.style.display = 'none';
-  var name   = document.getElementById('add-name').value.trim();
-  var origin = document.getElementById('add-origin').value.trim();
-  var style  = document.getElementById('add-style').value;
-  var rating = parseInt(document.getElementById('add-rating').value);
-  var date   = document.getElementById('add-date').value;
-  var notes  = document.getElementById('add-notes').value;
-  if (!name) {
-    showErr(errorElement, 'Name ist erforderlich.');
-    return;
-  }
-  if (!origin) {
-    showErr(errorElement, 'Herkunft ist erforderlich.');
-    return;
-  }
-  if (style === '__new__') {
-    showErr(errorElement, 'Bitte Stil speichern oder abbrechen.');
-    return;
-  }
-  var button = document.getElementById('add-submit-btn');
-  addSubmitting = true;
-  button.disabled = true;
-  button.textContent = 'Speichern...';
-  try {
-    var result = await Beers.create({ name: name, origin: origin, style: style, rating: rating, date: date, notes: notes });
-    if (result._incremented) {
-      document.getElementById('counter-text').innerHTML =
-        '<strong>' + result.name + '</strong> existiert bereits. Zähler auf <strong style="color: #f59e0b">' + result.counter + '×</strong> erhöht.';
-      document.getElementById('counter-banner').style.display = 'block';
-      document.getElementById('add-form').style.display = 'none';
-      setTimeout(function() { showView('dashboard'); }, 2000);
-    } else {
-      showView('dashboard');
-    }
-  } catch (error) {
-    showErr(errorElement, error.message);
-    addSubmitting = false;
-    button.disabled = false;
-    button.textContent = '🍺 Speichern';
-  }
-}
-
-
-async function openEdit(id) {
-  try {
-    var beer = await Beers.getById(id);
-    document.getElementById('edit-id').value     = beer.id;
-    document.getElementById('edit-name').value   = beer.name;
-    document.getElementById('edit-origin').value = beer.origin;
-    document.getElementById('edit-notes').value  = beer.notes || '';
-    if (beer.date) {
-      document.getElementById('edit-date').value = beer.date.split('T')[0];
-    } else {
-      document.getElementById('edit-date').value = '';
-    }
-    document.getElementById('edit-error').style.display = 'none';
-    editRatVal = beer.rating;
-    renderEditStars(beer.rating);
-    await loadStylesInto('edit-style', beer.style);
-    document.getElementById('edit-modal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  } catch (error) {
-    alert('Fehler: ' + error.message);
-  }
-}
-
-
-function closeModal() {
-  document.getElementById('edit-modal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('edit-modal').addEventListener('click', function(event) {
-  if (event.target === event.currentTarget) {
-    closeModal();
-  }
-});
-
-
-function renderEditStars(rating) {
-  var html = '';
-  for (var i = 1; i <= 5; i++) {
-    var filledClass = (i <= rating) ? 'filled' : '';
-    html += '<button type="button" class="star ' + filledClass + '"';
-    html += ' onclick="setEditRating(' + i + ')"';
-    html += ' onmouseover="hoverStars(\'edit-stars\', ' + i + ', \'edit-rating-label\')"';
-    html += ' onmouseout="renderEditStars(editRatVal)">★</button>';
-  }
-  document.getElementById('edit-stars').innerHTML = html;
-  document.getElementById('edit-rating-label').textContent = rating + '/5';
-}
-
-
-function setEditRating(rating) {
-  editRatVal = rating;
-  document.getElementById('edit-rating').value = rating;
-  renderEditStars(rating);
-}
-
-
-async function handleEditSubmit(event) {
-  event.preventDefault();
-  var errorElement = document.getElementById('edit-error');
-  errorElement.style.display = 'none';
-  var id     = document.getElementById('edit-id').value;
-  var name   = document.getElementById('edit-name').value.trim();
-  var origin = document.getElementById('edit-origin').value.trim();
-  var style  = document.getElementById('edit-style').value;
-  var rating = parseInt(document.getElementById('edit-rating').value);
-  var date   = document.getElementById('edit-date').value;
-  var notes  = document.getElementById('edit-notes').value;
-  if (!name || !origin) {
-    showErr(errorElement, 'Name und Herkunft sind Pflichtfelder.');
-    return;
-  }
-  var button = document.getElementById('edit-submit-btn');
-  button.disabled = true;
-  button.textContent = 'Speichern...';
-  try {
-    await Beers.update(id, { name: name, origin: origin, style: style, rating: rating, date: date, notes: notes });
-    closeModal();
-    await loadDashboard();
-  } catch (error) {
-    showErr(errorElement, error.message);
-  } finally {
-    button.disabled = false;
-    button.textContent = '✓ Änderungen speichern';
-  }
-}
-
-
-async function loadStylesInto(selectId, selectedStyle) {
-  try {
-    var styles = await Styles.getAll();
-    var selectElement = document.getElementById(selectId);
-    var html = '';
-    for (var i = 0; i < styles.length; i++) {
-      var style = styles[i];
-      var isSelected = (style === selectedStyle) ? 'selected' : '';
-      html += '<option value="' + style + '" ' + isSelected + '>' + style + '</option>';
-    }
-    html += '<option value="__new__">+ Neuer Stil...</option>';
-    selectElement.innerHTML = html;
-  } catch (error) {}
-}
-
-
-function handleStyleChange(selectId, rowId, inputId) {
-  var selectedValue = document.getElementById(selectId).value;
-  if (selectedValue === '__new__') {
-    document.getElementById(rowId).style.display = 'flex';
-    document.getElementById(inputId).focus();
-  } else {
-    document.getElementById(rowId).style.display = 'none';
-  }
-}
-
-
-async function saveNewStyle(selectId, rowId, inputId) {
-  var styleName = document.getElementById(inputId).value.trim();
-  if (!styleName) return;
-  try {
-    var result = await Styles.add(styleName);
-    await loadStylesInto(selectId, result.name);
-    document.getElementById(selectId).value = result.name;
-    document.getElementById(rowId).style.display = 'none';
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-
-async function cancelNewStyle(selectId, rowId) {
-  document.getElementById(rowId).style.display = 'none';
-  await loadStylesInto(selectId);
-}
-
-
-function hoverStars(containerId, rating, labelId) {
-  var stars = document.querySelectorAll('#' + containerId + ' .star');
-  for (var i = 0; i < stars.length; i++) {
-    stars[i].classList.toggle('filled', i < rating);
-  }
-  document.getElementById(labelId).textContent = rating + '/5';
-}
-
-
-function starsRO(rating, size) {
-  var sizeClass = size || '';
-  var html = '<div class="stars readonly ' + sizeClass + '">';
-  for (var i = 1; i <= 5; i++) {
-    var filledClass = (i <= rating) ? 'filled' : '';
-    html += '<span class="star ' + filledClass + '">★</span>';
-  }
-  html += '</div>';
-  return html;
-}
-
-
-function getBadge(style) {
-  if (!style) return 'badge-default';
-  var lowerStyle = style.toLowerCase();
-  if (lowerStyle === 'pils')   return 'badge-pils';
-  if (lowerStyle === 'helles') return 'badge-helles';
-  if (lowerStyle === 'weizen') return 'badge-weizen';
-  if (lowerStyle === 'dunkel') return 'badge-dunkel';
-  if (lowerStyle === 'ipa')    return 'badge-ipa';
-  if (lowerStyle === 'stout')  return 'badge-stout';
-  if (lowerStyle === 'lager')  return 'badge-lager';
-  return 'badge-default';
-}
-
-
-function fmtDate(isoDate) {
-  var date = new Date(isoDate);
-  return date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-
-function esc(text) {
-  if (!text) return '';
-  return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
-
-
-function showErr(element, message) {
-  element.textContent = '⚠ ' + message;
-  element.style.display = 'block';
-}
-
-</script>
 </body>
 </html>

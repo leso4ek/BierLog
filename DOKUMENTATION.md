@@ -19,23 +19,30 @@ Das Projekt besteht aus zwei Teilen die zusammenarbeiten:
 BierLog/
 │
 ├── backend/
-│   ├── main.py              ← der Server (Python)
+│   ├── main.py              ← der Server (Python / FastAPI)
 │   └── requirements.txt     ← liste der benötigten Python-Pakete
 │
 ├── public/
 │   ├── css/
-│   │   └── styles.css       ← das Design der App
+│   │   └── styles.css            ← das Design der App
 │   ├── js/
-│   │   └── api.js           ← JavaScript-Funktionen die mit dem Server reden
+│   │   ├── api.js                ← Service-Layer: kommuniziert mit dem Server
+│   │   ├── router.js             ← SPA-Router: steuert welche View sichtbar ist
+│   │   └── components/
+│   │       ├── auth.js           ← Komponente: Login & Registrierung
+│   │       ├── dashboard.js      ← Komponente: Bier-Liste, Stats, Edit-Modal
+│   │       └── addbier.js        ← Komponente: Bier hinzufügen
 │   └── html/
 │       └── Pages/
-│           ├── Anmelden.html     ← die Hauptseite (Login + Dashboard + Bier hinzufügen)
-│           ├── AddBier.html      ← separate Seite zum Bier hinzufügen
-│           └── Welcome Page.html ← die Startseite
+│           ├── Anmelden.html     ← SPA-Shell (einzige Seite der App)
+│           ├── AddBier.html      ← leitet nur weiter zu Anmelden.html#add
+│           └── Welcome Page.html ← die Startseite (kein SPA)
 │
 ├── Dockerfile               ← Anleitung um die App in Docker zu starten
 ├── docker-compose.yml       ← Konfiguration für Docker Compose
-└── DOKUMENTATION.md         ← diese Datei
+├── DOKUMENTATION.md         ← diese Datei
+├── ARCHITEKTUR.md           ← technische Übersicht und API-Dokumentation
+└── PROBLEME_UND_LOESUNGEN.md ← bekannte Probleme und deren Lösungen
 ```
 
 **Der Backend-Teil** ist der Server. Er läuft im Hintergrund, speichert alle Daten in einer Datenbank
@@ -370,7 +377,7 @@ top_style = connection.execute(
 
 ---
 
-## Teil 5: Das Frontend
+## Teil 5: Das Frontend – Single Page Application
 
 ### Was ist eine Single Page Application?
 
@@ -385,27 +392,91 @@ Es gibt drei Ansichten in einer Datei:
 - `view-dashboard` – alle Biere und Statistiken
 - `view-add` – Bier hinzufügen
 
-```javascript
-function showView(name) {
-    for (var i = 0; i < VIEWS.length; i++) {
-        var viewElement = document.getElementById('view-' + VIEWS[i]);
-        if (viewElement) {
-            viewElement.classList.remove('active');
-        }
-    }
-    var targetView = document.getElementById('view-' + name);
-    if (targetView) {
-        targetView.classList.add('active');
-    }
-    history.pushState(null, '', '#' + name);
-}
+### Aufbau: Komponenten und Router (wie tasksspa)
+
+Das Frontend ist nach dem gleichen Prinzip wie die Referenz-App **tasksspa** (Angular) aufgebaut –
+nur in Vanilla JavaScript statt TypeScript/Angular. Jede logische Einheit ist in einer eigenen Datei:
+
+```
+api.js              ← Service-Layer (wie task-service.ts)
+router.js           ← Router (wie app.routes.ts)
+components/
+  auth.js           ← AuthView-Objekt (wie eine Angular-Komponente)
+  dashboard.js      ← DashboardView-Objekt
+  addbier.js        ← AddBierView-Objekt
 ```
 
-Es werden alle Ansichten versteckt (CSS: `display: none`) und dann nur die gewünschte angezeigt
-(CSS-Klasse `active` → `display: block`).
+### Der Router (router.js)
+
+```javascript
+var Router = {
+    go: function(name) {
+        // alle Views verstecken
+        // gewünschten View anzeigen
+        // URL aktualisieren: history.pushState(null, '', '#' + name)
+        // zugehörige Komponente initialisieren
+        if (name === 'dashboard') DashboardView.init();
+        if (name === 'add')       AddBierView.init();
+    }
+};
+```
+
+`Router.go('dashboard')` ersetzt das frühere `showView('dashboard')`. Er ist jetzt der
+einzige zentrale Ort der für Navigation zuständig ist – genau wie `app.routes.ts` in Angular.
 
 `history.pushState` aktualisiert die URL ohne die Seite neu zu laden.
 Dadurch funktioniert der Zurück-Button im Browser und man kann URLs bookmarken.
+
+### Die Komponenten
+
+Jedes Komponenten-Objekt kapselt alles was zu seiner View gehört:
+
+```javascript
+var AuthView = {
+    currentTab: 'login',          // interner Zustand
+    switchTab:    function() {},   // Methode
+    handleSubmit: async function() {},
+    togglePass:   function() {}
+};
+
+var DashboardView = {
+    cardMode: 'cards',
+    init:     async function() {},
+    load:     async function() {},
+    openEdit: async function() {},
+    // ...
+};
+
+var AddBierView = {
+    rating:       3,
+    submitting:   false,
+    init:         async function() {},
+    handleSubmit: async function() {}
+};
+```
+
+In `Anmelden.html` gibt es keine Logik mehr – nur noch HTML mit `onclick`-Aufrufen auf die Objekte:
+
+```html
+<!-- vorher: onclick="switchTab('login')" -->
+<button onclick="AuthView.switchTab('login')">Anmelden</button>
+
+<!-- vorher: onclick="showView('dashboard')" -->
+<a onclick="Router.go('dashboard')">Dashboard</a>
+```
+
+### Reihenfolge der Script-Einbindung
+
+```html
+<script src="/static/js/api.js"></script>           ← Service (wird von allen gebraucht)
+<script src="/static/js/components/auth.js"></script>
+<script src="/static/js/components/dashboard.js"></script>
+<script src="/static/js/components/addbier.js"></script>
+<script src="/static/js/router.js"></script>         ← zuletzt: braucht alle Komponenten
+```
+
+Der Router muss zuletzt geladen werden, weil er beim Start sofort `DashboardView.init()` oder
+`AddBierView.init()` aufrufen kann – diese müssen also schon geladen sein.
 
 ---
 
@@ -465,6 +536,15 @@ JSON ist das Format in dem Browser und Server miteinander reden.
 
 `response.ok` ist `true` wenn der HTTP-Status zwischen 200 und 299 liegt (Erfolg).
 Bei einem Fehler (z.B. 400, 401, 404, 500) wird ein Fehler geworfen.
+
+### API_BASE – relativer Pfad
+
+```javascript
+var API_BASE = '/api';
+```
+
+Da Backend und Frontend vom selben Server ausgeliefert werden (FastAPI) wird ein relativer
+Pfad benutzt. Das funktioniert sowohl lokal (`localhost:8000`) als auch in der Cloud (Render).
 
 ---
 
@@ -527,20 +607,6 @@ mit maximalem Abstand zwischen ihnen – perfekt für eine Navbar mit Logo links
 Der `@media`-Block ist eine **Media Query**: Bei Bildschirmen breiter als 640px
 werden 4 Spalten angezeigt. So funktioniert **Responsive Design** – die Seite sieht
 auf dem Handy und auf dem Computer gut aus.
-
-### backdrop-filter
-
-```css
-.navbar {
-    background: rgba(18, 11, 1, 0.85);
-    backdrop-filter: blur(12px);
-}
-```
-
-`backdrop-filter: blur()` macht alles was hinter dem Element ist unscharf.
-Das erzeugt den "Frosted Glass"-Effekt den man von modernen Betriebssystemen kennt.
-`rgba(18, 11, 1, 0.85)` ist eine leicht transparente Hintergrundfarbe
-(der vierte Wert `0.85` ist die Transparenz: 0 = unsichtbar, 1 = völlig undurchsichtig).
 
 ---
 
@@ -609,14 +675,11 @@ Am Beispiel "Bier hinzufügen":
 ```
 1. Benutzer füllt das Formular aus und klickt "Speichern"
          ↓
-2. JavaScript liest die Formularfelder aus:
-   name = "Augustiner Helles"
-   origin = "München"
-   style = "Helles"
-   rating = 4
+2. AddBierView.handleSubmit() liest die Formularfelder aus:
+   name = "Augustiner Helles", origin = "München", style = "Helles", rating = 4
          ↓
-3. api.js schickt eine HTTP-Anfrage an den Server:
-   POST http://localhost:8000/api/beers
+3. api.js / Beers.create() schickt eine HTTP-Anfrage an den Server:
+   POST /api/beers
    Header: Authorization: Bearer eyJhbGci...
    Body: { "name": "Augustiner Helles", "origin": "München", ... }
          ↓
@@ -631,11 +694,12 @@ Am Beispiel "Bier hinzufügen":
 6. Server schickt das neue Bier als JSON zurück:
    { "id": "xyz", "name": "Augustiner Helles", ... }
          ↓
-7. JavaScript empfängt die Antwort
+7. AddBierView empfängt die Antwort
    - falls _incremented: Zähler-Banner anzeigen
-   - sonst: zurück zum Dashboard wechseln
+   - sonst: Router.go('dashboard') aufrufen (kein Page Reload!)
          ↓
-8. Dashboard lädt neu und zeigt das neue Bier an
+8. DashboardView.init() wird vom Router aufgerufen
+   Dashboard lädt neu und zeigt das neue Bier an
 ```
 
 ---
@@ -664,5 +728,8 @@ Am Beispiel "Bier hinzufügen":
 | async/await   | JavaScript-Schlüsselwörter um auf Netzwerkanfragen zu warten                               |
 | DOM           | Document Object Model – die Baumstruktur einer HTML-Seite, änderbar mit JavaScript         |
 | Endpunkt      | eine bestimmte Adresse (URL) in der API                                                     |
-| Middleware     | Code der bei jeder Anfrage dazwischen geschaltet wird (z.B. CORS, Token-Prüfung)           |
+| Middleware    | Code der bei jeder Anfrage dazwischen geschaltet wird (z.B. CORS, Token-Prüfung)           |
 | Container     | eine isolierte Umgebung in der eine App läuft (Docker)                                      |
+| SPA           | Single Page Application – eine Web-App die ohne Seitenneulads auskommt                     |
+| Komponente    | ein abgeschlossener Baustein der App mit eigenem Zustand und eigener Logik                  |
+| Router        | der Teil der SPA der entscheidet welche View gerade angezeigt wird                         |
