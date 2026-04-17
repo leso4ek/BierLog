@@ -1,0 +1,17 @@
+services:
+  bierlog:
+    build: .
+    container_name: bierlog
+    ports:
+      - "8000:8000"
+    volumes:
+      # Datenbank wird außerhalb des Containers gespeichert
+      # → bleibt erhalten wenn der Container neu gestartet wird
+      - bierlog-data:/data
+    environment:
+      - DB_PATH=/data/bierlog.db
+      - JWT_SECRET=bierlog-production-secret-change-me
+    restart: unless-stopped
+
+volumes:
+  bierlog-data:

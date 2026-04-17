@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BierLog – Willkommen</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar-inner">
+      <a href="/" class="navbar-logo">🍺 Bier<span>Log</span></a>
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="Anmelden.html#auth"   class="btn-ghost"   style="padding: 0.5rem 1rem;">Anmelden</a>
+        <a href="Anmelden.html#signin" class="btn-primary" style="padding: 0.5rem 1rem;">Registrieren</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <div class="hero fade-up">
+        <div style="font-size: 4.5rem; margin-bottom: 1rem;">🍺</div>
+        <h1>Bier<span>Log</span></h1>
+        <p class="hero-sub">Deine persönliche Bierdatenbank</p>
+        <p class="hero-desc">
+          Erfasse jedes Bier das du probierst — mit Bewertung, Herkunft, Stil und Notizen.
+          Behalte den Überblick über deine Lieblinge, entdecke Muster in deinem Geschmack
+          und baue deine persönliche Biersammlung auf.
+        </p>
+        <div class="hero-cta">
+          <a href="Anmelden.html#signin" class="btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+            Kostenlos starten →
+          </a>
+          <a href="Anmelden.html#auth" class="btn-ghost" style="padding: 0.85rem 2rem; font-size: 1rem;">
+            Bereits registriert? Anmelden
+          </a>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="card feature-card fade-up stagger-1">
+          <div class="icon">📋</div>
+          <h3>Erfassen</h3>
+          <p>Biere mit Rating, Stil, Herkunft und Notizen dokumentieren</p>
+        </div>
+        <div class="card feature-card fade-up stagger-2">
+          <div class="icon">📊</div>
+          <h3>Auswerten</h3>
+          <p>Statistiken, Lieblingsbierstile und Durchschnittsbewertung auf einen Blick</p>
+        </div>
+        <div class="card feature-card fade-up stagger-3">
+          <div class="icon">🔍</div>
+          <h3>Durchsuchen</h3>
+          <p>Filtern und sortieren nach Name, Stil oder Herkunft</p>
+        </div>
+        <div class="card feature-card fade-up stagger-4">
+          <div class="icon">🔄</div>
+          <h3>Zähler</h3>
+          <p>Gleiches Bier nochmal probiert? Zähler wird automatisch erhöht</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">BierLog – Prost! 🍻</footer>
+
+  <script src="../../js/api.js"></script>
+  <script>
+    if (Auth.isLoggedIn()) {
+      window.location.href = 'Anmelden.html#dashboard';
+    }
+  </script>
+
+</body>
+</html>
