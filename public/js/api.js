@@ -1,4 +1,4 @@
-var API_BASE = 'http://localhost:8000/api';
+var API_BASE = '/api';
 
 
 function getToken() {
